@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.dtstack.flinkx.test;
 
 import ch.qos.logback.classic.Level;
@@ -130,10 +129,10 @@ public class LocalTest {
 //        conf.setString("metrics.reporter.promgateway.randomJobNameSuffix","true");
 //        conf.setString("metrics.reporter.promgateway.deleteOnShutdown","true");
 
-        String jobPath = "/Users/tudou/Library/Preferences/IntelliJIdea2019.3/scratches/json/stream.json";
-        String savePointPath = "";
-        JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, savePointPath);
+        String jobPath = "/Users/yanghuai/Library/Application Support/JetBrains/IntelliJIdea2020.1/scratches/stream_stream.json";
+        JobExecutionResult result = LocalTest.runJob(new File(jobPath), confProperties, null);
         ResultPrintUtil.printResult(result);
+        System.exit(0);
     }
 
     public static JobExecutionResult runJob(File jobFile, Properties confProperties, String savepointPath) throws Exception{

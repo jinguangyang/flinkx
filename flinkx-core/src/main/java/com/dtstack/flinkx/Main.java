@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.client.program.ContextEnvironment;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -84,6 +85,7 @@ public class Main {
         String monitor = options.getMonitor();
         String pluginRoot = options.getPluginRoot();
         String savepointPath = options.getS();
+        String remotePluginPath = options.getRemotePluginPath();
         Properties confProperties = parseConf(options.getConfProp());
 
         // 解析jobPath指定的任务配置文件
@@ -103,6 +105,10 @@ public class Main {
             flinkConf = GlobalConfiguration.loadConfiguration(options.getFlinkconf());
         }
 
+        if (StringUtils.isNotEmpty(remotePluginPath)) {
+            config.setRemotePluginPath(remotePluginPath);
+        }
+
         StreamExecutionEnvironment env = (StringUtils.isNotBlank(monitor)) ?
                 StreamExecutionEnvironment.getExecutionEnvironment() :
                 new MyLocalStreamEnvironment(flinkConf);
@@ -113,6 +119,8 @@ public class Main {
         SpeedConfig speedConfig = config.getJob().getSetting().getSpeed();
 
         env.setParallelism(speedConfig.getChannel());
+        env.setRestartStrategy(RestartStrategies.noRestart());
+
         BaseDataReader dataReader = DataReaderFactory.getDataReader(config, env);
         DataStream<Row> dataStream = dataReader.readData();
         if(speedConfig.getReaderChannel() > 0){
@@ -125,10 +133,10 @@ public class Main {
 
         BaseDataWriter dataWriter = DataWriterFactory.getDataWriter(config);
         DataStreamSink<?> dataStreamSink = dataWriter.writeData(dataStream);
+
         if(speedConfig.getWriterChannel() > 0){
             dataStreamSink.setParallelism(speedConfig.getWriterChannel());
         }
-
         if(env instanceof MyLocalStreamEnvironment) {
             if(StringUtils.isNotEmpty(savepointPath)){
                 ((MyLocalStreamEnvironment) env).setSettings(SavepointRestoreSettings.forPath(savepointPath));

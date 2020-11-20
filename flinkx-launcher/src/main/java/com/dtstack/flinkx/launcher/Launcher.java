@@ -116,7 +116,7 @@ public class Launcher {
         }
     }
 
-    private static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
+    public static JobGraph buildJobGraph(Options launcherOptions, String[] remoteArgs) throws Exception {
         String pluginRoot = launcherOptions.getPluginRoot();
         String content = launcherOptions.getJob();
         String coreJarName = getCoreJarFileName(pluginRoot);
@@ -162,7 +162,6 @@ public class Launcher {
 
         return urlList;
     }
-
     private static void findDefaultConfigDir(Options launcherOptions) {
         findDefaultPluginRoot(launcherOptions);
 

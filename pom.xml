@@ -47,7 +47,6 @@
 
         <!--******实时******-->
         <module>flinkx-binlog</module>
-        <module>flinkx-pgwal</module>
         <module>flinkx-kb</module>
         <module>flinkx-kafka09</module>
         <module>flinkx-kafka10</module>
@@ -61,11 +60,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flink.version>1.10.0</flink.version>
-        <flinkx.version>1.6</flinkx.version>
         <hadoop.version>2.7.3</hadoop.version>
         <http.version>4.5.3</http.version>
         <dev.path>${basedir}/dev</dev.path>
-        <package.name>release_1.10.1</package.name>
+        <package.name>release_1.10.2</package.name>
     </properties>
 
     <dependencies>

@@ -19,8 +19,10 @@ package com.dtstack.flinkx.rdb.util;
 
 import com.dtstack.flinkx.constants.ConstantValue;
 import com.dtstack.flinkx.rdb.ParameterValuesProvider;
+import com.dtstack.flinkx.reader.MetaColumn;
 import com.dtstack.flinkx.util.ClassUtil;
 import com.dtstack.flinkx.util.ExceptionUtil;
+import com.dtstack.flinkx.util.GsonUtil;
 import com.dtstack.flinkx.util.SysUtil;
 import com.dtstack.flinkx.util.TelnetUtil;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,8 +76,9 @@ public class DbUtil {
      */
     private static int NANOS_LENGTH = 19;
 
-    public static int NANOS_PART_LENGTH = 9;
     private static int FORMAT_TIME_NANOS_LENGTH = 29;
+
+    public static int NANOS_PART_LENGTH = 9;
 
     /**
      * jdbc连接URL的分割正则，用于获取URL?后的连接参数
@@ -134,7 +143,7 @@ public class DbUtil {
                 try {
                     dbConn = getConnectionInternal(url, username, password);
                     try (Statement statement = dbConn.createStatement()){
-                        statement.execute("select 111");
+                        statement.execute("SELECT 1 FROM dual");
                         failed = false;
                     }
                 } catch (Exception e) {
@@ -249,19 +258,33 @@ public class DbUtil {
     /**
      * 获取结果集的列类型信息
      *
-     * @param resultSet             查询结果集
+     * @param resultSet  查询结果集
      * @return 字段类型list列表
      */
-    public static List<String> analyzeColumnType(ResultSet resultSet){
-        List<String> columnTypeList = new ArrayList();
+    public static List<String> analyzeColumnType(ResultSet resultSet, List<MetaColumn> metaColumns){
+        List<String> columnTypeList = new ArrayList<>();
+
         try {
             ResultSetMetaData rd = resultSet.getMetaData();
-            for (int i = 1; i <= rd.getColumnCount(); i++) {
-                columnTypeList.add(rd.getColumnTypeName(i));
+            Map<String,String> nameTypeMap = new HashMap<>((rd.getColumnCount() << 2) / 3);
+            for(int i = 0; i < rd.getColumnCount(); ++i) {
+                nameTypeMap.put(rd.getColumnName(i+1),rd.getColumnTypeName(i+1));
+            }
+
+            for (MetaColumn metaColumn : metaColumns) {
+                if(metaColumn.getValue() != null){
+                    columnTypeList.add("VARCHAR");
+                } else {
+                    columnTypeList.add(nameTypeMap.get(metaColumn.getName()));
+                }
             }
         } catch (SQLException e) {
-            LOG.error("error to analyzeSchema, resultSet =  {}, e = {}", resultSet, ExceptionUtil.getErrorMessage(e));
-            throw new RuntimeException(e);
+            String message = String.format("error to analyzeSchema, resultSet = %s, columnTypeList = %s, e = %s",
+                    resultSet,
+                    GsonUtil.GSON.toJson(columnTypeList),
+                    ExceptionUtil.getErrorMessage(e));
+            LOG.error(message);
+            throw new RuntimeException(message);
         }
         return columnTypeList;
     }

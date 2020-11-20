@@ -67,7 +67,7 @@ public class MysqldInputFormat extends DistributedJdbcInputFormat {
         columnCount = currentResultSet.getMetaData().getColumnCount();
 
         if(descColumnTypeList == null) {
-            descColumnTypeList = DbUtil.analyzeColumnType(currentResultSet);
+            descColumnTypeList = DbUtil.analyzeColumnType(currentResultSet, metaColumns);
         }
 
         LOG.info("open source: {} ,table: {}", currentSource.getJdbcUrl(), currentSource.getTable());
