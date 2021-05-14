@@ -56,12 +56,12 @@ and id > ${offset}
 offset存在时
 
 ```sql
-第一个通道：
+#第一个通道:
 select * from data_test
 where id mod 2=0
 and id > ${offset_0};
 
-第二个通道
+#第二个通道:
 select * from data_test
 where id mod 2=1
 and id > ${offset_1};
@@ -70,11 +70,11 @@ and id > ${offset_1};
 offset不存在时
 
 ```sql
-第一个通道：
+#第一个通道:
 select * from data_test
 where id mod 2=0;
 
-第二个通道
+#第二个通道:
 select * from data_test
 where id mod 2=1;
 ```
@@ -91,7 +91,7 @@ where id mod 2=1;
 
 3. 检测 /data_test/.data 目录是否存在，如果存在就先删除，再创建，确保没有其它任务因异常失败遗留的脏数据文件；
    
-   数据写入hdfs是单条写入的，不支持批量写入。数据会先写入/data_test/.data/目录下，数据文件的命名格式为： channelIndex.jobId.fileIndex，包含通道索引，jobId，文件索引三个部分，文件最掐灭。
+   数据写入hdfs是单条写入的，不支持批量写入。数据会先写入/data_test/.data/目录下，数据文件的命名格式为： channelIndex.jobId.fileIndex，包含通道索引，jobId，文件索引三个部分。
 
 ##### **3**）checkpoint触发时
 
@@ -111,7 +111,7 @@ checkpoint触发后，两个reader先生成Snapshot记录读取状态，通道0�
 > 
 > Writer_1：id=无法确定
 
-任务状态会记录到配置的HDFS目录/flinkx/checkpoint/abc123下。因为每个Writer会接收两个Reader的数据，以及各个通道的数据读写速率可能不一样，所以导致writer接收到的数据顺序是不确定的，但是这不影响数据的准确性，因为读取数据时只需要Reader记录的状态就可以构造查询sql，我们只要确保这些数据真的写到HDF就行了。在Writer生成Snapshot之前，会做一系列操作保证接收到的数据全部写入HDFS：
+任务状态会记录到配置的HDFS目录/flinkx/checkpoint/abc123下。因为每个Writer会接收两个Reader的数据，以及各个通道的数据读写速率可能不一样，所以导致writer接收到的数据顺序是不确定的，但是这不影响数据的准确性，因为读取数据时只需要Reader记录的状态就可以构造查询sql，我们只要确保这些数据真的写到HDFS就行了。在Writer生成Snapshot之前，会做一系列操作保证接收到的数据全部写入HDFS：
 
 - close写入HDFS文件的数据流，这时候会在/data_test/.data目录下生成两个两个文件:
   
